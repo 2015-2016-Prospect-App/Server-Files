@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$" />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" exported="" name="nodejs server node_modules" level="project" />
+    <orderEntry type="library" exported="" name="jQuery UI-1.10.2" level="application" />
+    <orderEntry type="library" exported="" name="jQuery-2.0.0" level="application" />
+    <orderEntry type="library" exported="" name="Node.js v5.1.1 Core Modules" level="application" />
+  </component>
+</module>
