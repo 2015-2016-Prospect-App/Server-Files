@@ -74,24 +74,17 @@ app.get('/add-user', function (req, res) {
 
 });
 
-// Makes two people friends given their ids
+// Adds name to requester's friend's list
 app.get('/add-friend', function (req, res) {
-	var id1 = req.query.id1;
-	var id2 = req.query.id2;
-	var token = req.query.token;
+	var token = req.query.id;
+	var name = req.query.name;
+	var id = getId(token);
 	assert.equals(validateToken(token),true);
 
 	function updateDocuments(db,callback){
 		db.collection("users").updateOne(
-			{ id: id1 },
-			{ $push: { friends: id2 } },
-			function(err,result){
-				assert.equal(null,err);
-				callback(result);
-			});
-		db.collection("users").updateOne(
-			{ id: id2 },
-			{ $push: { friends: id1 } },
+			{ id: id },
+			{ $push: { friends: name } },
 			function(err,result){
 				assert.equal(null,err);
 				callback(result);
