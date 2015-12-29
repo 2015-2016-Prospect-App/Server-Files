@@ -6,10 +6,10 @@ var searchRadius = 0.000100;
 var searchDiameter = searchRadius * 2;
 
 var locations = db.DBNAME.find({
-                longitude:{$lt: currentLong - searchDiameter,
-                            $gt: currentLong + searchDiameter },
-                latitude: {$lt: currentLat - searchDiameter,
-                            $gt: currentLat + searchDiameter },
-                lastUpdated: { $gt: new Date().getTime() - 60000} });
+    longitude:{$lt: currentLong - searchDiameter,
+        $gt: currentLong + searchDiameter },
+    latitude: {$lt: currentLat - searchDiameter,
+        $gt: currentLat + searchDiameter },
+    lastUpdated: { $gt: Date.now() - 60000} });
 
 return locations;

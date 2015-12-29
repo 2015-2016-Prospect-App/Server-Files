@@ -35,7 +35,7 @@ app.get('/add-user', function (req, res) {
 				"position":{
 					"longitude": 0,
 					"latitude": 0,
-					"lastUpdated": new Date().getTime()
+					"lastUpdated": Date.now()
 				},
 				"mean": 1200,
 				"standardDeviation": 400,
