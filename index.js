@@ -77,14 +77,14 @@ app.get('/add-user', function (req, res) {
 // Adds name to requester's friend's list
 app.get('/add-friend', function (req, res) {
 	var token = req.query.id;
-	var name = req.query.name;
+	var friendId = req.query.friendId;
 	var id = getId(token);
 	assert.equals(validateToken(token),true);
 
 	function updateDocuments(db,callback){
 		db.collection("users").updateOne(
 			{ id: id },
-			{ $push: { friends: name } },
+			{ $push: { friends: friendId } },
 			function(err,result){
 				assert.equal(null,err);
 				callback(result);
