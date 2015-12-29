@@ -20,7 +20,7 @@ function validateToken(id){
 	});
 }
 
-// Adds a users
+// Adds a user
 app.get('/add-user', function (req, res) {
 	var id = req.query.id;
 	var name = req.query.name;
@@ -55,6 +55,39 @@ app.get('/add-user', function (req, res) {
 	MongoClient.connect(url, function(err, db) {
 		assert.equal(null, err);
 		insertDocument(db,function(){
+			db.close();
+		})
+	});
+
+});
+
+// Makes two people friends given their ids
+app.get('/add-friend', function (req, res) {
+	var id1 = req.query.id1;
+	var id2 = req.query.id2;
+	var token = req.query.token;
+	assert.equals(validateToken(token),true);
+
+	function updateDocuments(db,callback){
+		db.collection("users").updateOne(
+			{ id: id1 },
+			{ $push: { friends: id2 } },
+			function(err,result){
+				assert.equal(null,err);
+				callback(result);
+			});
+		db.collection("users").updateOne(
+			{ id: id2 },
+			{ $push: { friends: id1 } },
+			function(err,result){
+				assert.equal(null,err);
+				callback(result);
+			});
+	}
+
+	MongoClient.connect(url, function(err, db) {
+		assert.equal(null, err);
+		updateDocuments(db,function(){
 			db.close();
 		})
 	});
