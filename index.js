@@ -9,6 +9,8 @@ var ranking = require('./rankingSystemUpdate');
 var clientID = "541312567370-pab53eic5cd7s031sclpavu8i65rceub.apps.googleusercontent.com";
 var url = 'mongodb://localhost:27017/test';
 
+//test
+
 //make sure token is valid
 function validateToken(token){
 	requestify.get('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=' + token).then(function(response) {
