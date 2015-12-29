@@ -20,7 +20,7 @@ function validateToken(id){
 	});
 }
 
-// Adds a user
+// Adds a users
 app.get('/add-user', function (req, res) {
 	var id = req.query.id;
 	var name = req.query.name;
