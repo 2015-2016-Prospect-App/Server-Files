@@ -18,7 +18,7 @@ function validateToken(token){
 		}
 	});
 }
-
+//get id from token
 function getId(token){
 	requestify.get('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=' + token).then(function(response) {
 		if(response.getBody().aud == clientID){
