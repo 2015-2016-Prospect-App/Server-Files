@@ -50,7 +50,7 @@ app.get('/add-user', function (req, res) {
                         "position":{
                             "longitude": 0,
                             "latitude": 0,
-                            "lastUpdated": Date.now()
+                            "lastUpdated": 0
                         },
                         "mean": 1200,
                         "standardDeviation": 400,
@@ -79,7 +79,7 @@ app.get('/add-user', function (req, res) {
 
 });
 
-// Adds name to requester's friend's list
+// Adds name to requester's friend's list given a name and an id
 app.get('/add-friend', function (req, res) {
 	var token = req.query.id;
 	var friendId = req.query.friendId;
