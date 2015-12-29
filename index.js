@@ -9,16 +9,17 @@ var ranking = require('./rankingSystemUpdate');
 var clientID = "541312567370-pab53eic5cd7s031sclpavu8i65rceub.apps.googleusercontent.com";
 var url = 'mongodb://localhost:27017/test';
 
-//testdsdasd
-//dgudgas
+//TODO make sure all get request handlers use validateToken callback
 
-//make sure token is valid
-function validateToken(token){
+//make sure token is valid(has callback)
+function validateToken(token, callback){
+    console.log("token is: " + token);
 	requestify.get('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=' + token).then(function(response) {
 		if(response.getBody().aud == clientID){
-			return true;
+            callback(true);
 		}else{
-			return false;
+			callback(false);
+
 		}
 	});
 }
@@ -34,43 +35,47 @@ function getId(token){
 
 // Adds a user
 app.get('/add-user', function (req, res) {
-	var token = req.query.id;
+	var token = req.query.token;
 	var name = req.query.name;
-	assert.equals(validateToken(token),true);
-    var id = getId(token);
+	validateToken(token,function(valid){
+        console.log("add-user",valid);
+       if(valid){
+            console.log("token valid, adding user");
+            var id = getId(token);
+            function insertDocument(db,callback){
+                db.collection("users").insertOne(
+                    {
+                        "id": id,
+                        "name": name,
+                        "position":{
+                            "longitude": 0,
+                            "latitude": 0,
+                            "lastUpdated": Date.now()
+                        },
+                        "mean": 1200,
+                        "standardDeviation": 400,
+                        "skillNumber": 880,
+                        "comments":[
+                            ["0","PLACEHOLDER"]
+                        ],
+                        "wins":0,
+                        "games":0,
+                        "friends":[]
+                    },
+                    function(err,result){
+                        assert.equal(null,err);
+                        callback(result);
+                    });
+            }
 
-	function insertDocument(db,callback){
-		db.collection("users").insertOne(
-			{
-				"id": id,
-				"name": name,
-				"position":{
-					"longitude": 0,
-					"latitude": 0,
-					"lastUpdated": Date.now()
-				},
-				"mean": 1200,
-				"standardDeviation": 400,
-				"skillNumber": 880,
-				"comments":[
-					["0","PLACEHOLDER"]
-				],
-				"wins":0,
-				"games":0,
-				"friends":[]
-			},
-			function(err,result){
-				assert.equal(null,err);
-				callback(result);
-			});
-	}
-
-	MongoClient.connect(url, function(err, db) {
-		assert.equal(null, err);
-		insertDocument(db,function(){
-			db.close();
-		})
-	});
+            MongoClient.connect(url, function(err, db) {
+                assert.equal(null, err);
+                insertDocument(db,function(){
+                    db.close();
+                })
+            });
+       }
+    });
 
 });
 
@@ -79,7 +84,7 @@ app.get('/add-friend', function (req, res) {
 	var token = req.query.id;
 	var friendId = req.query.friendId;
 	var id = getId(token);
-	assert.equals(validateToken(token),true);
+	assert.equal(validateToken(token),true);
 
 	function updateDocuments(db,callback){
 		db.collection("users").updateOne(
@@ -101,30 +106,30 @@ app.get('/add-friend', function (req, res) {
 });
 
 app.get('/user-exists',function(req,res){
-	var id = req.query.id;
     var token = req.query.token;
-    assert.equals(validateToken(token),true);
-    
-	MongoClient.connect(url,function(err,db){
-		assert.equal(null,err);
-		db.collection("users").count({id : id},function(err,count){
-			console.log(count);
-			if(count<1){
-				res.send("false");
-			}else{
-				res.send("true");
-			}
-			db.close();
-		});
+    validateToken(token,function(valid){
+        if(valid){
+            var id = getId(token);
+            MongoClient.connect(url,function(err,db){
+                assert.equal(null,err);
+                db.collection("users").count({id : id},function(err,count){
+                    console.log(count);
+                    if(count<1){
+                        res.send("false");
+                    }else{
+                        res.send("true");
+                    }
+                    db.close();
+                });
 
-	})
+            })
+        }
+    });
 	
 });
 
 app.get('/get-user',function(req,res){
 	var id = req.query.id;
-    var token = req.query.token;
-    assert.equals(validateToken(token),true);
     
 	MongoClient.connect(url,function(err,db){
 		assert.equal(null,err);
