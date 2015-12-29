@@ -9,9 +9,8 @@ var ranking = require('./rankingSystemUpdate');
 var clientID = "541312567370-pab53eic5cd7s031sclpavu8i65rceub.apps.googleusercontent.com";
 var url = 'mongodb://localhost:27017/test';
 
-function validateToken(id){
-	requestify.get('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=' + id).then(function(response) {
-		console.log(response.getBody().aud)
+function validateToken(token){
+	requestify.get('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=' + token).then(function(response) {
 		if(response.getBody().aud == clientID){
 			return true;
 		}else{
@@ -20,12 +19,21 @@ function validateToken(id){
 	});
 }
 
+function getId(token){
+	requestify.get('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=' + token).then(function(response) {
+		if(response.getBody().aud == clientID){
+			return response.getBody().sub;
+		}
+	});
+}
+
+
 // Adds a user
 app.get('/add-user', function (req, res) {
-	var id = req.query.id;
+	var token = req.query.id;
 	var name = req.query.name;
-	var token = req.query.token;
 	assert.equals(validateToken(token),true);
+    var id = getId(token);
 
 	function insertDocument(db,callback){
 		db.collection("users").insertOne(
