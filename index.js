@@ -15,16 +15,16 @@ var url = 'mongodb://localhost:27017/test';
 function validateToken(token, callback){
     console.log("token is: " + token);
 	requestify.get('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=' + token).then(function(response) {
-		if(response.getBody().aud == clientID){
+		console.log("google response: ",response);
+        if(response.getBody().aud == clientID){
             callback(true);
-		}else{
-			callback(false);
-
 		}
-	});
+	},function(error){
+        callback(false);
+    });
 }
-//get id from token
-function getId(token,callback){
+//get id from token, call validate token first or bad things happen
+function getId(token, callback){
 	requestify.get('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=' + token).then(function(response) {
 		if(response.getBody().aud == clientID){
 			callback(response.getBody().sub);
@@ -113,15 +113,19 @@ app.get('/add-friend', function (req, res) {
 app.get('/user-exists',function(req,res){
     var token = req.query.token;
     validateToken(token,function(valid){
+        console.log(valid);
         if(valid){
+            console.log("token is valid");
             getId(token,function(id){
                 MongoClient.connect(url,function(err,db){
                     assert.equal(null,err);
                     db.collection("users").count({id : id},function(err,count){
                         console.log(count);
-                        if(count<1){
+                        if(count<1)
+                        {
                             res.send("false");
-                        }else{
+                        }
+                        else{
                             res.send("true");
                         }
                         db.close();
@@ -129,6 +133,8 @@ app.get('/user-exists',function(req,res){
 
                 })
             });
+        }else{
+            res.send("invalid token")
         }
     });
 	
@@ -136,13 +142,20 @@ app.get('/user-exists',function(req,res){
 
 app.get('/get-user',function(req,res){
 	var id = req.query.id;
-    
 	MongoClient.connect(url,function(err,db){
 		assert.equal(null,err);
 		db.collection("users").findOne({id : id}, function(err,docs){
             res.send(docs);
         });
 	})
+	
+});
+
+app.get('/get-id',function(req,res){
+	var token = req.query.token;
+    getId(token,function(id){
+       res.send(id); 
+    });
 	
 });
 
