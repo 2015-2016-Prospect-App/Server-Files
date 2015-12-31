@@ -24,10 +24,10 @@ function validateToken(token, callback){
 	});
 }
 //get id from token
-function getId(token){
+function getId(token,callback){
 	requestify.get('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=' + token).then(function(response) {
 		if(response.getBody().aud == clientID){
-			return response.getBody().sub;
+			callback(response.getBody().sub);
 		}
 	});
 }
@@ -37,42 +37,47 @@ function getId(token){
 app.get('/add-user', function (req, res) {
 	var token = req.query.token;
 	var name = req.query.name;
+    console.log("Request is ",req.query);
 	validateToken(token,function(valid){
         console.log("add-user",valid);
        if(valid){
-            console.log("token valid, adding user");
-            var id = getId(token);
-            function insertDocument(db,callback){
-                db.collection("users").insertOne(
-                    {
-                        "id": id,
-                        "name": name,
-                        "position":{
-                            "longitude": 0,
-                            "latitude": 0,
-                            "lastUpdated": Date.now()
+            getId(token,function(id){
+                console.log("token valid, adding user");
+                console.log("name:" + name + " id:" + id);
+                function insertDocument(db,callback){
+                    db.collection("users").insertOne(
+                        {
+                            "id": id,
+                            "name": name,
+                            "position":{
+                                "longitude": 0,
+                                "latitude": 0,
+                                "lastUpdated": Date.now()
+                            },
+                            "mean": 1200,
+                            "standardDeviation": 400,
+                            "skillNumber": 880,
+                            "comments":[
+                                ["0","PLACEHOLDER"]
+                            ],
+                            "wins":0,
+                            "games":0,
+                            "friends":[]
                         },
-                        "mean": 1200,
-                        "standardDeviation": 400,
-                        "skillNumber": 880,
-                        "comments":[
-                            ["0","PLACEHOLDER"]
-                        ],
-                        "wins":0,
-                        "games":0,
-                        "friends":[]
-                    },
-                    function(err,result){
-                        assert.equal(null,err);
-                        callback(result);
-                    });
-            }
+                        function(err,result){
+                            assert.equal(null,err);
+                            callback(result);
+                        });
+                }
 
-            MongoClient.connect(url, function(err, db) {
-                assert.equal(null, err);
-                insertDocument(db,function(){
-                    db.close();
-                })
+                MongoClient.connect(url, function(err, db) {
+                    assert.equal(null, err);
+                    insertDocument(db,function(){
+                        res.send("true");
+                        db.close();
+                    })
+                });
+                
             });
        }
     });
@@ -109,20 +114,21 @@ app.get('/user-exists',function(req,res){
     var token = req.query.token;
     validateToken(token,function(valid){
         if(valid){
-            var id = getId(token);
-            MongoClient.connect(url,function(err,db){
-                assert.equal(null,err);
-                db.collection("users").count({id : id},function(err,count){
-                    console.log(count);
-                    if(count<1){
-                        res.send("false");
-                    }else{
-                        res.send("true");
-                    }
-                    db.close();
-                });
+            getId(token,function(id){
+                MongoClient.connect(url,function(err,db){
+                    assert.equal(null,err);
+                    db.collection("users").count({id : id},function(err,count){
+                        console.log(count);
+                        if(count<1){
+                            res.send("false");
+                        }else{
+                            res.send("true");
+                        }
+                        db.close();
+                    });
 
-            })
+                })
+            });
         }
     });
 	
