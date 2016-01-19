@@ -58,7 +58,7 @@ app.get('/add-user', function (req, res) {
                             "standardDeviation": 400,
                             "skillNumber": 880,
                             "comments":[
-                                ["0","PLACEHOLDER"]
+                                ["coolkid","PLACEHOLDER"]
                             ],
                             "wins":0,
                             "games":0,
@@ -156,6 +156,18 @@ app.get('/get-id',function(req,res){
     getId(token,function(id){
        res.send(id); 
     });
+	
+});
+
+app.get('/get-id-from-name',function(req,res){
+	var name = req.query.name;
+	MongoClient.connect(url,function(err,db){
+		assert.equal(null,err);
+		db.collection("users").findOne({name : name}, function(err,docs){
+            console.log("found user " + name);
+            res.send(docs.id);
+        });
+	})
 	
 });
 
