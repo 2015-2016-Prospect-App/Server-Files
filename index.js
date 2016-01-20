@@ -31,16 +31,27 @@ function getId(token, callback){
 		}
 	});
 }
+function getImage(token, callback){
+	requestify.get('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=' + token).then(function(response) {
+		if(response.getBody().aud == clientID){
+			callback(response.getBody().picture);
+		}
+	});
+}
 
 
 // Adds a user
 app.get('/add-user', function (req, res) {
 	var token = req.query.token;
 	var name = req.query.name;
+    var imageURL;
     console.log("Request is ",req.query);
 	validateToken(token,function(valid){
         console.log("add-user",valid);
        if(valid){
+            getImage(token,function(image){
+                imageURL = image;
+            });
             getId(token,function(id){
                 console.log("token valid, adding user");
                 console.log("name:" + name + " id:" + id);
@@ -49,6 +60,7 @@ app.get('/add-user', function (req, res) {
                         {
                             "id": id,
                             "name": name,
+                            "image": imageURL,
                             "position":{
                                 "longitude": 0,
                                 "latitude": 0,
@@ -170,6 +182,22 @@ app.get('/get-id-from-name',function(req,res){
 	})
 	
 });
+app.get('/get-friends', function(req,res){
+    var token = req.query.token;
+    console.log("get-friends called");
+    validateToken(token,function(valid){
+       if(valid){
+           getId(token,function(id){
+                MongoClient.connect(url,function(err,db){
+                    db.collection("users").findOne({id:id},function(err,docs){
+                        console.log("friends", docs.friends);
+                        res.send(docs.friends);
+                    });
+                });
+           });
+       } 
+    });
+})
 
 var server = app.listen(2014, function () {
   var host = server.address().address;
