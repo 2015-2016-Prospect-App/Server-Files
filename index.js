@@ -98,29 +98,29 @@ app.get('/add-user', function (req, res) {
 
 // Adds name to requester's friend's list given a name and an id
 app.get('/add-friend', function (req, res) {
-	var token = req.query.id;
-	var friendId = req.query.friendId;
-	var id = getId(token);
-	assert.equal(validateToken(token),true);
-
-	function updateDocuments(db,callback){
-		db.collection("users").updateOne(
-			{ id: id },
-			{ $push: { friends: friendId } },
-			function(err,result){
-				assert.equal(null,err);
-				callback(result);
-			});
-	}
-
-	MongoClient.connect(url, function(err, db) {
-		assert.equal(null, err);
-		updateDocuments(db,function(){
-			db.close();
-		})
-	});
-
+	var token = req.query.token;
+	var friendName = req.query.friendName;
+    getId(token,function(id){
+        function updateDocuments(db,callback){
+            console.log("user",friendName,"added to", id);
+            db.collection("users").updateOne(
+                { id: id },
+                { $push: { friends: friendName } },
+                function(err,result){
+                    assert.equal(null,err);
+                    callback(result);
+                });
+        }
+        MongoClient.connect(url, function(err, db) {
+            assert.equal(null, err);
+            res.send("true");
+            updateDocuments(db,function(){
+                db.close();
+            })
+    	});
+    });
 });
+
 
 app.get('/user-exists',function(req,res){
     var token = req.query.token;
@@ -182,6 +182,8 @@ app.get('/get-id-from-name',function(req,res){
 	})
 	
 });
+
+
 app.get('/get-friends', function(req,res){
     var token = req.query.token;
     console.log("get-friends called");
